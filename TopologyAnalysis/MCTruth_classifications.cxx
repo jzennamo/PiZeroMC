@@ -177,43 +177,46 @@ namespace larlite {
   //This is run once at the end of the job
   bool MCTruth_classifications::finalize() {
       
-      std::cout << "\n\n ============================================================================= \n ";
-      std::cout << " \t number of all events processed: \t\t "              << all_events       << std::endl;
-      std::cout << " \t number of CCpi0 events found: \t\t\t "              << CCpi0_events     << std::endl;
+      std::cout << "\n\n ===================================================================================================================================== \n ";
+      std::cout << "\n List of all topologies present (MCTruth). Includes possible neutrons"    << std::endl;
+      std::cout << " \t number of all events processed: \t\t\t\t "              << all_events       << std::endl;
+      std::cout << " \t number of CCpi0 events found: \t\t\t\t\t "              << CCpi0_events     << std::endl;
       
-      std::cout << "\n \t final state topolgy: muon + Pi0 + X \t\t\t\t "        << all                  << "\t\t"<< 100 << " %"<<std::endl;
+      std::cout << "\n \t final state topolgy: muon + Pi0 + X \t\t\t\t "        << all                                      << "\t\t"<< 100 << " %"<<std::endl;
+      std::cout << " \t\t X is nothing                  \t\t\t\t "              << nothing + nothing_n                      << "\t\t"<< 100*(nothing+nothing_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is proton                   \t\t\t\t "              << single_proton + single_proton_n          << "\t\t"<< 100*(single_proton+single_proton_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is chPi (charged Pion)      \t\t\t\t "              << single_chPi+single_chPi_n                << "\t\t"<< 100*(single_chPi+single_chPi_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is Pi0                      \t\t\t\t "              << single_pi0+single_pi0_n                  << "\t\t"<< 100*(single_pi0+single_pi0_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is Pi0 + proton             \t\t\t\t "              << proton_pi0+proton_pi0_n                  << "\t\t"<< 100*(proton_pi0+proton_pi0_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is chPi + proton            \t\t\t\t "              << proton_chPi+proton_chPi_n                << "\t\t"<< 100*(proton_chPi+proton_chPi_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is chPi + > 1 protons       \t\t\t\t "              << chPi_more2pro+chPi_more2pro_n            << "\t\t"<< 100*(chPi_more2pro+chPi_more2pro_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is Pi0 + > 1 proton         \t\t\t\t "              << Pi0_more2pro+Pi0_more2pro_n              << "\t\t"<< 100*(Pi0_more2pro+Pi0_more2pro_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is > 1 Pi0 + > 0 proton     \t\t\t\t "              << morePi0_pros+morePi0_pros_n              << "\t\t"<< 100*(morePi0_pros+morePi0_pros_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is > 1 protons              \t\t\t\t "              << proton_more2+proton_more2_n              << "\t\t"<< 100*(proton_more2+proton_more2_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is > 1 chPi                 \t\t\t\t "              << chPi_more2+chPi_more2_n                  << "\t\t"<< 100*(chPi_more2+chPi_more2_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is > 1 chPi + > 0 proton    \t\t\t\t "              << chPi_more2_pros+chPi_more2_pros_n        << "\t\t"<< 100*(chPi_more2_pros+chPi_more2_pros_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is > 0 chPi + > 0 proton + > 0 Pi0  \t\t\t "        << more_chPi_pro_pi0+more_chPi_pro_pi0_n    << "\t\t"<< 100*(more_chPi_pro_pi0+more_chPi_pro_pi0_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X contains > 0 nuclear fragments \t\t\t\t "           << nuclear                                  << "\t\t"<< 100*nuclear/all << " %" << std::endl;
+      std::cout << " \t\t X contains at least 1 kaon \t\t\t\t "                 << least1Kaon                               << "\t\t"<< 100*least1Kaon/all<< " %"<<std::endl;
       
-      std::cout << " \t\t X is nothing                  \t\t\t\t "              << nothing              << "\t\t"<< 100*nothing/all << " %"<<std::endl;
-      std::cout << " \t\t X is nothing and > 0 neutrons \t\t\t\t "              << nothing_n            << "\t\t"<< 100*nothing_n/all<< " %"<<std::endl;
-      std::cout << " \t\t X is proton                   \t\t\t\t "              << single_proton        << "\t\t"<< 100*single_proton/all << " %"<<std::endl;
-      std::cout << " \t\t X is proton and > 0 neutrons  \t\t\t\t "              << single_proton_n      << "\t\t"<< 100*single_proton_n/all<<" %"<<std::endl;
-      std::cout << " \t\t X is chPi (charged Pion)      \t\t\t\t "              << single_chPi          << "\t\t"<< 100*single_chPi/all << " %"<<std::endl;
-      std::cout << " \t\t X is chPi and > 0 neutrons    \t\t\t\t "              << single_chPi_n        << "\t\t"<< 100*single_chPi_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is Pi0                      \t\t\t\t "              << single_pi0           << "\t\t"<< 100*single_pi0/all << " %"<<std::endl;
-      std::cout << " \t\t X is Pi0 and > 0 neutrons     \t\t\t\t "              << single_pi0_n         << "\t\t"<< 100*single_pi0_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is Pi0 + proton             \t\t\t\t "              << proton_pi0           << "\t\t"<< 100*proton_pi0/all << " %"<<std::endl;
-      std::cout << " \t\t X is Pi0 + proton + > 0 neutrons \t\t\t\t "           << proton_pi0_n         << "\t\t"<< 100*proton_pi0_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is chPi + proton            \t\t\t\t "              << proton_chPi          << "\t\t"<< 100*proton_chPi/all << " %"<<std::endl;
-      std::cout << " \t\t X is chPi + proton + > 0 neutrons \t\t\t "            << proton_chPi_n        << "\t\t"<< 100*proton_chPi_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is chPi + > 1 protons       \t\t\t\t "              << chPi_more2pro        << "\t\t"<< 100*chPi_more2pro/all << " %"<<std::endl;
-      std::cout << " \t\t X is chPi + > 1 protons + > 0 neutrons \t\t\t "       << chPi_more2pro_n      << "\t\t"<< 100*chPi_more2pro_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is Pi0 + > 1 proton         \t\t\t\t "              << Pi0_more2pro         << "\t\t"<< 100*Pi0_more2pro/all << " %"<<std::endl;
-      std::cout << " \t\t X is Pi0 + > 1 proton + > 0 neutrons \t\t\t "         << Pi0_more2pro_n       << "\t\t"<< 100*Pi0_more2pro_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 1 Pi0 + > 0 proton     \t\t\t\t "              << morePi0_pros         << "\t\t"<< 100*morePi0_pros/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 1 Pi0 + > 0 proton + > 0 neutrons \t\t\t "     << morePi0_pros_n       << "\t\t"<< 100*morePi0_pros_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 1 protons              \t\t\t\t "              << proton_more2         << "\t\t"<< 100*proton_more2/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 1 protons + > 0 neutrons \t\t\t\t "            << proton_more2_n       << "\t\t"<< 100*proton_more2_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 1 chPi                 \t\t\t\t "              << chPi_more2           << "\t\t"<< 100*chPi_more2/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 1 chPi + > 0 neutrons  \t\t\t\t "              << chPi_more2_n         << "\t\t"<< 100*chPi_more2_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 1 chPi + > 0 proton    \t\t\t\t "              << chPi_more2_pros      << "\t\t"<< 100*chPi_more2_pros/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 1 chPi + > 0 proton + > 0 neutrons \t\t "      << chPi_more2_pros_n    << "\t\t"<< 100*chPi_more2_pros_n/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 0 chPi + > 0 proton + > 0 Pi0  \t\t\t "        << more_chPi_pro_pi0    << "\t\t"<< 100*more_chPi_pro_pi0/all << " %"<<std::endl;
-      std::cout << " \t\t X is > 0 chPi + > 0 proton + > 0 Pi0 + >0 neutrons \t "<< more_chPi_pro_pi0_n << "\t\t"<< 100*more_chPi_pro_pi0_n/all << " %"<<std::endl;
-      std::cout << " \t\t X contains > 0 nuclear fragments \t\t\t\t "           << nuclear              << "\t\t"<< 100*nuclear/all << " %" << std::endl;
-      std::cout << " \t\t X contains at least 1 kaon \t\t\t\t "                 << least1Kaon           << "\t\t"<< 100*least1Kaon/all<< " %"<<std::endl;
+      //std::cout << " \t\t X is nothing and > 0 neutrons \t\t\t\t "              << nothing_n            << "\t\t"<< 100*nothing_n/all<< " %"<<std::endl;
+      //std::cout << " \t\t X is proton and > 0 neutrons  \t\t\t\t "              << single_proton_n      << "\t\t"<< 100*single_proton_n/all<<" %"<<std::endl;
+      //std::cout << " \t\t X is chPi and > 0 neutrons    \t\t\t\t "              << single_chPi_n        << "\t\t"<< 100*single_chPi_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is Pi0 and > 0 neutrons     \t\t\t\t "              << single_pi0_n         << "\t\t"<< 100*single_pi0_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is Pi0 + proton + > 0 neutrons \t\t\t\t "           << proton_pi0_n         << "\t\t"<< 100*proton_pi0_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is chPi + proton + > 0 neutrons \t\t\t "            << proton_chPi_n        << "\t\t"<< 100*proton_chPi_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is chPi + > 1 protons + > 0 neutrons \t\t\t "       << chPi_more2pro_n      << "\t\t"<< 100*chPi_more2pro_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is Pi0 + > 1 proton + > 0 neutrons \t\t\t "         << Pi0_more2pro_n       << "\t\t"<< 100*Pi0_more2pro_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is > 1 Pi0 + > 0 proton + > 0 neutrons \t\t\t "     << morePi0_pros_n       << "\t\t"<< 100*morePi0_pros_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is > 1 protons + > 0 neutrons \t\t\t\t "            << proton_more2_n       << "\t\t"<< 100*proton_more2_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is > 1 chPi + > 0 neutrons  \t\t\t\t "              << chPi_more2_n         << "\t\t"<< 100*chPi_more2_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is > 1 chPi + > 0 proton + > 0 neutrons \t\t "      << chPi_more2_pros_n    << "\t\t"<< 100*chPi_more2_pros_n/all << " %"<<std::endl;
+      //std::cout << " \t\t X is > 0 chPi + > 0 proton + > 0 Pi0 + >0 neutrons \t "<< more_chPi_pro_pi0_n << "\t\t"<< 100*more_chPi_pro_pi0_n/all << " %"<<std::endl;
       
-      std:: cout<< " \t\t                               \t\t\t\t"<< nothing + nothing_n + single_proton + single_proton_n + single_chPi +single_chPi_n + single_pi0 + single_pi0_n + proton_chPi + proton_chPi_n + chPi_more2pro + chPi_more2pro_n + proton_pi0 + proton_pi0_n + Pi0_more2pro + Pi0_more2pro_n + morePi0_pros + morePi0_pros_n + proton_more2 + proton_more2_n + chPi_more2 + chPi_more2_n + chPi_more2_pros + chPi_more2_pros_n + more_chPi_pro_pi0 + more_chPi_pro_pi0_n + least1Kaon + nuclear<< std::endl;
-      std::cout <<" ============================================================================= \n\n\n ";
+      std:: cout<< " \t\t total (check)                              \t\t"<< nothing + nothing_n + single_proton + single_proton_n + single_chPi +single_chPi_n + single_pi0 + single_pi0_n + proton_chPi + proton_chPi_n + chPi_more2pro + chPi_more2pro_n + proton_pi0 + proton_pi0_n + Pi0_more2pro + Pi0_more2pro_n + morePi0_pros + morePi0_pros_n + proton_more2 + proton_more2_n + chPi_more2 + chPi_more2_n + chPi_more2_pros + chPi_more2_pros_n + more_chPi_pro_pi0 + more_chPi_pro_pi0_n + least1Kaon + nuclear<< std::endl;
+      
+      std::cout << "\n \t\t percentage of events with muon + Pi0 + X toplogy \t "  << all << " / " << all_events << " \t i.e. \t" << 100*all/all_events << " %" << std::endl;
+      std::cout <<" ===================================================================================================================================== \n\n\n ";
     
     if(_fout) { _fout->cd(); tree->Write(); }
     
