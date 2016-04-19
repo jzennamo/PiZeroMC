@@ -58,7 +58,41 @@ namespace larlite {
     TTree* tree;
     int thisInt = 0;
     double thisDouble = 0.0;
-
+    int fpdg = 0;
+    int nparticles = 0;
+    int fProtons = 0;
+      
+    // X in PiZero + Mu + X neutrino interaction topolgy
+    int all = 0;
+    int nothing = 0;
+    int nothing_n = 0;
+    int single_proton = 0;
+    int single_proton_n = 0;
+    int single_chPi = 0;
+    int single_chPi_n = 0;
+    int single_pi0 = 0;
+    int single_pi0_n = 0;
+    int proton_pi0 = 0;
+    int proton_pi0_n = 0;
+    int proton_chPi = 0;
+    int proton_chPi_n = 0;
+    int Pi0_more2pro = 0;
+    int Pi0_more2pro_n = 0;
+    int proton_more2 = 0;
+    int proton_more2_n = 0;
+    int chPi_more2 = 0;
+    int chPi_more2_n = 0;
+    int chPi_more2_pros = 0;
+    int chPi_more2_pros_n = 0;
+    int chPi_more2pro = 0;
+    int chPi_more2pro_n = 0;
+    int more_chPi_pro_pi0 = 0;
+    int more_chPi_pro_pi0_n = 0;
+    int least1Kaon = 0;
+    int morePi0_pros = 0;
+    int morePi0_pros_n = 0;
+    int nuclear = 0;
+      
   protected:
     
   };
