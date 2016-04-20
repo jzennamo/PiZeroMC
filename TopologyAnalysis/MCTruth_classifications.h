@@ -88,10 +88,13 @@ namespace larlite {
     int chPi_more2pro_n = 0;
     int more_chPi_pro_pi0 = 0;
     int more_chPi_pro_pi0_n = 0;
+    int more_chPi_pi0 = 0;
+    int more_chPi_pi0_n = 0;
     int least1Kaon = 0;
     int morePi0_pros = 0;
     int morePi0_pros_n = 0;
     int nuclear = 0;
+    int photons = 0;
       
   protected:
     

@@ -38,10 +38,13 @@ namespace larlite {
     chPi_more2pro_n     = 0;
     more_chPi_pro_pi0   = 0;
     more_chPi_pro_pi0_n = 0;
+    more_chPi_pi0       = 0;
+    more_chPi_pi0_n     = 0;
     least1Kaon          = 0;
     morePi0_pros        = 0;
     morePi0_pros_n      = 0;
     nuclear             = 0;
+    photons             = 0;
     
     
     
@@ -88,6 +91,7 @@ namespace larlite {
     int nNeutrons           = 0;
     int nKaons              = 0;
     int nFrag               = 0;
+    int nPhoton             = 0;
 
     
     // If interaction is CC and numu
@@ -123,8 +127,10 @@ namespace larlite {
           if(par.PdgCode() == 13 )                          nMu++;
           if(par.PdgCode() == 211 || par.PdgCode() == -211) nPiCh++;
           if(par.PdgCode() == 2112)                         nNeutrons++;
-          if(par.PdgCode() == 321 || par.PdgCode() == 130)  nKaons++;
+          if(par.PdgCode() == 321 || par.PdgCode() == 130 || par.PdgCode() == 311 || par.PdgCode() == 310)  nKaons++;
           if(par.PdgCode() > 100000)                        nFrag++;
+          if(par.PdgCode() == 22)                           nPhoton++;
+          if(par.PdgCode() != 2212 && par.PdgCode() != 2112 && par.PdgCode() != 111 && par.PdgCode() != 211 && par.PdgCode() != -211 && par.PdgCode() != 321 && par.PdgCode() != 130 && par.PdgCode() != 13 && par.PdgCode() < 100000 && par.PdgCode() != 22) std::cout << par.PdgCode() << std::endl;
     
         
         } //StatusCode() == 1 (stable final state)
@@ -150,7 +156,7 @@ namespace larlite {
     else if(nMu == 1 && nPi0 == 2 && nProtons >=2 && nNeutrons > 0 && all_final_stable == 3+nProtons+nNeutrons)                         Pi0_more2pro_n++;
     else if(nMu == 1 && nPi0 >= 3 && nProtons >= 1 && all_final_stable == 1+nPi0+nProtons)                                              morePi0_pros++;
     else if(nMu == 1 && nPi0 >= 3 && nProtons >= 1 && nNeutrons > 0 && all_final_stable == 1+nPi0+nProtons+nNeutrons)                   morePi0_pros_n++;
-    else if(nMu == 1 && nPi0 == 1 && nProtons >= 2 && all_final_stable == (nProtons+2))                                                 proton_more2++;
+    else if(nMu == 1 && nPi0 == 1 && nProtons >= 2 && all_final_stable == nProtons+2)                                                   proton_more2++;
     else if(nMu == 1 && nPi0 == 1 && nProtons >= 2 && nNeutrons > 0 && all_final_stable == nProtons+2+nNeutrons)                        proton_more2_n++;
     else if(nMu == 1 && nPi0 == 1 && nPiCh >= 2 && all_final_stable == (nPiCh+2))                                                       chPi_more2++;
     else if(nMu == 1 && nPi0 == 1 && nPiCh >= 2 && nNeutrons > 0 && all_final_stable == nPiCh+2+nNeutrons)                              chPi_more2_n++;
@@ -158,6 +164,9 @@ namespace larlite {
     else if(nMu == 1 && nPi0 == 1 && nPiCh >= 2 && nProtons >=1 && nNeutrons > 0 && all_final_stable == 2+nPiCh+nProtons+nNeutrons)     chPi_more2_pros_n++;
     else if(nMu == 1 && nPi0 >= 2 && nProtons >= 1 && nPiCh >=1 && all_final_stable ==nPi0+nProtons+nPiCh+1)                            more_chPi_pro_pi0++;
     else if(nMu == 1 && nPi0 >= 2 && nProtons >= 1 && nPiCh >=1 && nNeutrons > 0 && all_final_stable ==nPi0+nProtons+nPiCh+1+nNeutrons) more_chPi_pro_pi0_n++;
+    else if(nMu == 1 && nPi0 >= 2 && nPiCh >=1 && all_final_stable ==nPi0+nPiCh+1)                                                      more_chPi_pi0++;
+    else if(nMu == 1 && nPi0 >= 2 && nPiCh >=1 && nNeutrons > 0 && all_final_stable ==nPi0+nPiCh+1+nNeutrons)                           more_chPi_pi0_n++;
+    else if(nMu == 1 && nPi0 >= 1 && nPhoton > 0)                                                                                       photons++;
     else if(nMu == 1 && nPi0 >= 1 && nFrag > 0)                                                                                         nuclear++;
     else if(nMu >= 1 && nPi0 >= 1 && nKaons >=1)                                                                                        least1Kaon++;
       
@@ -195,9 +204,11 @@ namespace larlite {
       std::cout << " \t\t X is > 1 protons              \t\t\t\t "              << proton_more2+proton_more2_n              << "\t\t"<< 100*(proton_more2+proton_more2_n)/all << " %"<<std::endl;
       std::cout << " \t\t X is > 1 chPi                 \t\t\t\t "              << chPi_more2+chPi_more2_n                  << "\t\t"<< 100*(chPi_more2+chPi_more2_n)/all << " %"<<std::endl;
       std::cout << " \t\t X is > 1 chPi + > 0 proton    \t\t\t\t "              << chPi_more2_pros+chPi_more2_pros_n        << "\t\t"<< 100*(chPi_more2_pros+chPi_more2_pros_n)/all << " %"<<std::endl;
+      std::cout << " \t\t X is > 0 chPi + > 0 Pi0       \t\t\t\t "              << more_chPi_pi0+more_chPi_pi0_n            << "\t\t"<< 100*(more_chPi_pi0+more_chPi_pi0_n)/all << " %"<<std::endl;
       std::cout << " \t\t X is > 0 chPi + > 0 proton + > 0 Pi0  \t\t\t "        << more_chPi_pro_pi0+more_chPi_pro_pi0_n    << "\t\t"<< 100*(more_chPi_pro_pi0+more_chPi_pro_pi0_n)/all << " %"<<std::endl;
       std::cout << " \t\t X contains > 0 nuclear fragments \t\t\t\t "           << nuclear                                  << "\t\t"<< 100*nuclear/all << " %" << std::endl;
       std::cout << " \t\t X contains at least 1 kaon \t\t\t\t "                 << least1Kaon                               << "\t\t"<< 100*least1Kaon/all<< " %"<<std::endl;
+      std::cout << " \t\t X contains at least 1 photon \t\t\t\t "               << photons                                  << "\t\t"<< 100*photons/all<< " %" <<std::endl;
       
       //std::cout << " \t\t X is nothing and > 0 neutrons \t\t\t\t "              << nothing_n            << "\t\t"<< 100*nothing_n/all<< " %"<<std::endl;
       //std::cout << " \t\t X is proton and > 0 neutrons  \t\t\t\t "              << single_proton_n      << "\t\t"<< 100*single_proton_n/all<<" %"<<std::endl;
@@ -213,7 +224,7 @@ namespace larlite {
       //std::cout << " \t\t X is > 1 chPi + > 0 proton + > 0 neutrons \t\t "      << chPi_more2_pros_n    << "\t\t"<< 100*chPi_more2_pros_n/all << " %"<<std::endl;
       //std::cout << " \t\t X is > 0 chPi + > 0 proton + > 0 Pi0 + >0 neutrons \t "<< more_chPi_pro_pi0_n << "\t\t"<< 100*more_chPi_pro_pi0_n/all << " %"<<std::endl;
       
-      std:: cout<< " \t\t total (check)                              \t\t"<< nothing + nothing_n + single_proton + single_proton_n + single_chPi +single_chPi_n + single_pi0 + single_pi0_n + proton_chPi + proton_chPi_n + chPi_more2pro + chPi_more2pro_n + proton_pi0 + proton_pi0_n + Pi0_more2pro + Pi0_more2pro_n + morePi0_pros + morePi0_pros_n + proton_more2 + proton_more2_n + chPi_more2 + chPi_more2_n + chPi_more2_pros + chPi_more2_pros_n + more_chPi_pro_pi0 + more_chPi_pro_pi0_n + least1Kaon + nuclear<< std::endl;
+      std:: cout<< " \t\t total (check)                              \t\t"<< nothing + nothing_n + single_proton + single_proton_n + single_chPi +single_chPi_n + single_pi0 + single_pi0_n + proton_chPi + proton_chPi_n + chPi_more2pro + chPi_more2pro_n + proton_pi0 + proton_pi0_n + Pi0_more2pro + Pi0_more2pro_n + morePi0_pros + morePi0_pros_n + proton_more2 + proton_more2_n + chPi_more2 + chPi_more2_n + chPi_more2_pros + chPi_more2_pros_n + more_chPi_pro_pi0 + more_chPi_pro_pi0_n + more_chPi_pi0 + more_chPi_pi0_n + least1Kaon + nuclear + photons << std::endl;
       
       std::cout << "\n \t\t percentage of events with muon + Pi0 + X toplogy \t "  << all << " / " << all_events << " \t i.e. \t" << 100*all/all_events << " %" << std::endl;
       std::cout <<" ===================================================================================================================================== \n\n\n ";
