@@ -2,8 +2,6 @@
 #define LARLITE_MCTRACK_LENGTHS_CXX
 
 #include "MCTrack_lengths.h"
-#include "DataFormat/mctruth.h"
-#include <TLorentzVector.h>
 
 namespace larlite {
 
@@ -75,7 +73,6 @@ namespace larlite {
       auto mcshow_v = storage->get_data<event_mcshower>("mcreco");// this is a vector of showers
 
       
-      
       // Check whether event is numuCCpi0
       if(nu.CCNC() == 0 && abs(nu.Nu().PdgCode()) == 14) {
         CCpi0_events++;
@@ -101,8 +98,7 @@ namespace larlite {
       //////////////////////////////////////////////////////////////////////////////////
       // This bit only executed when looking at a numuCCpi0 event                     //
       
-      if(numuCCpi0 == true) {     // these are the events that contribute to all count
-          //std::cout << "\n\n" <<std::endl;
+      if(numuCCpi0 == true) {
           
         // Vertex
         TVector3 vtx;
@@ -115,25 +111,40 @@ namespace larlite {
             double mu_len = 0; TVector3 start; TVector3 end;
             start.SetXYZ(mctrk.Start().X(),mctrk.Start().Y(),mctrk.Start().Z());
             end.SetXYZ(mctrk.End().X(),mctrk.End().Y(),mctrk.End().Z());
-            mu_len = (end - start).Mag();
+            
+            //for(int i = 0; i < mctrk.size(); i++){
+            bool first = true;
+            TVector3 disp;
+            for(auto step : mctrk) {
+                if(first) first = false;
+                else {
+                    TVector3 pos(step.X(), step.Y(), step.Z());
+                    disp -= pos;
+                    mu_len += disp.Mag();
+                    disp = pos;
+                }
+            }
+                
+                //if(mctrk.at(i) != mctrk.at(0) ) { //|| fTPC.Contain(mctrk.at(i))){
+                   //   mu_len += (mctrk.at(i-1) - mctrk.at(i)).Mag();
+                 // }
+              //}
+              std::cout << " \n mu_len " << mu_len << std::endl;
+              std::cout << " start end " << (end - start).Mag() << std::endl;
             muon_length = mu_len;
             muons->Fill();
               
             // Define vertex as start point of "primary" muon, i.e. the one coming from numu interaction
-              if(mctrk.Process() == "primary") {
-                  vtx = start ;
-              }
+              if(mctrk.Process() == "primary") vtx = start;
               else vtx = {-9999,-9999,-9999};
-              //std::cout << "process " << mctrk.Process() << std::endl;
-              //std::cout << "vtx \t"      << vtx.X() << std::endl;
           }
           
-          
           else if(mctrk.PdgCode() != 2112 && mctrk.PdgCode() != 111 && mctrk.PdgCode() < 10000) {            // cutting out neutral particles and fragments
-            nTrk++;
+            nTrk++;                                                                                          // this counts tracks other than muons
             double other_len = 0; TVector3 start; TVector3 end;
             start.SetXYZ(mctrk.Start().X(),mctrk.Start().Y(),mctrk.Start().Z());
             end.SetXYZ(mctrk.End().X(),mctrk.End().Y(),mctrk.End().Z());
+            
             other_len = (end - start).Mag();
             other_length = other_len;
             d_vtx = (vtx - start).Mag(); // distance to vertex
@@ -142,29 +153,19 @@ namespace larlite {
             if(other_process == "primary") prim_trk++;
             other->Fill();
           }
-            
-            //std::cout << "\n distance to vertex " << d_vtx << std::endl;
-            //std::cout << " other pdg " << other_pdg << std::endl;
-            //std::cout << " other process " << other_process << std::endl;
         
         } //acting on each element of mctrk_v
           
-          for(auto mcshow : *mcshow_v) {
-              nShow++;
-              if(mcshow.MotherPdgCode() == 111 && mcshow.MotherTrackID() == mcshow.AncestorTrackID()) prim_show++;
-              //std::cout << "shower process " << mcshow.Process() << std::endl;
-              //std::cout << "shower mother " << mcshow.MotherPdgCode() << std::endl;
-              //std::cout << "mother track ID " << mcshow.MotherTrackID() <<std::endl;
-              //std::cout << "ancestor track ID " << mcshow.AncestorTrackID() << std::endl;
+        for(auto mcshow : *mcshow_v) {
+          nShow++;
+          if(mcshow.MotherPdgCode() == 111 && mcshow.MotherTrackID() == mcshow.AncestorTrackID()) prim_show++;
           }
           
           if(prim_trk == 1 && nMuTrk == 1 && prim_show == 2) {
-              topoCut = true;   // topoCut is 1 muon track, one other track and 2 showers from vertex
+              topoCut = true;                                                   // topoCut is 1 muon track, one other track and 2 showers from vertex
               nTopoCut++;
           }
           
-          //std::cout << "topoCut " << topoCut << std::endl;
-          //std::cout << "nShow " << nShow << std::endl;
     } // selecting numuCCpi0 events
       
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -172,7 +173,7 @@ namespace larlite {
     
     //if(muon_length > 10000) std::cout << "muon_length "<< muon_length << std::endl;
       
-      
+    //Filling appropriate trees ==== NEEDS WORK
     
     no_muons = nMuTrk;
     if(numuCCpi0 == false) no_muons = -3; // -3 if no interaction present
