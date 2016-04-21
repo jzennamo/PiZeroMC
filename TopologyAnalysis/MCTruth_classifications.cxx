@@ -48,7 +48,7 @@ namespace larlite {
     
     
     
-    //Add new elements to the TTree here:
+    //Add new elements to the TTree here:   /////////Clean up tree some other time
     if(tree) delete tree;
     tree = new TTree("tree","tree");
     tree->Branch("thisInt",&thisInt,"thisInt/I");
@@ -122,15 +122,15 @@ namespace larlite {
           //  containsPiZero = true;
           //}
          
-          if(par.PdgCode() == 2212)                         nProtons++;
-          if(par.PdgCode() == 111)                          nPi0++;
-          if(par.PdgCode() == 13 )                          nMu++;
-          if(par.PdgCode() == 211 || par.PdgCode() == -211) nPiCh++;
-          if(par.PdgCode() == 2112)                         nNeutrons++;
+          if(par.PdgCode() == 2212)                             nProtons++;
+          if(par.PdgCode() == 111)                              nPi0++;
+          if(abs(par.PdgCode()) == 13 )                         nMu++;
+          if(par.PdgCode() == 211 || par.PdgCode() == -211)     nPiCh++;
+          if(par.PdgCode() == 2112)                             nNeutrons++;
+          if(par.PdgCode() > 100000)                            nFrag++;
+          if(par.PdgCode() == 22)                               nPhoton++;
           if(par.PdgCode() == 321 || par.PdgCode() == 130 || par.PdgCode() == 311 || par.PdgCode() == 310)  nKaons++;
-          if(par.PdgCode() > 100000)                        nFrag++;
-          if(par.PdgCode() == 22)                           nPhoton++;
-          if(par.PdgCode() != 2212 && par.PdgCode() != 2112 && par.PdgCode() != 111 && par.PdgCode() != 211 && par.PdgCode() != -211 && par.PdgCode() != 321 && par.PdgCode() != 130 && par.PdgCode() != 13 && par.PdgCode() < 100000 && par.PdgCode() != 22) std::cout << par.PdgCode() << std::endl;
+          if(par.PdgCode() != 2212 && par.PdgCode() != 2112 && par.PdgCode() != 111 && par.PdgCode() != 211 && par.PdgCode() != -211 && par.PdgCode() != 321 && par.PdgCode() != 130 && abs(par.PdgCode()) != 13 && par.PdgCode() < 100000 && par.PdgCode() != 22) std::cout << par.PdgCode() << std::endl;
     
         
         } //StatusCode() == 1 (stable final state)
