@@ -20,8 +20,8 @@
 #include "DataFormat/mctruth.h"
 #include "DataFormat/mctrack.h"
 #include "DataFormat/mcshower.h"
-//#include "UserDev/BasicTool/GeoAlgo/GeoAABox.h"
-//#include "GeoAlgo/GeoAlgo.h"
+//#include "GeoAlgo/GeoAABox.h"
+#include "LArUtil/Geometry.h"
 #include "TTree.h"
 
 namespace larlite {
@@ -71,11 +71,55 @@ namespace larlite {
       double other_length   = 0;
       double other_pdg      = 0;
       std::string other_process;
-      double d_vtx          = 0;
+      double d_vtx_trk      = 0; //track distances from vertex
+      double d_vtx_show      = 0; //shower distances from vertex
       
       int CCpi0_events      = 0;
       int all               = 0;
       int nTopoCut          = 0;
+      
+  private:
+      
+      bool StartInTPC(larlite::mctrack mctrk){
+          if(mctrk.Start().X() < 0 || mctrk.Start().X() > 2*(larutil::Geometry::GetME()->DetHalfWidth()) ||
+             mctrk.Start().Y() < -(larutil::Geometry::GetME()->DetHalfHeight()) || mctrk.Start().Y() > larutil::Geometry::GetME()->DetHalfHeight() ||
+             mctrk.Start().Z() < 0 || mctrk.Start().Z() > larutil::Geometry::GetME()->DetLength()) {
+              return false;
+          }
+          else return true;
+      }
+      
+      bool StartInTPC(larlite::mcshower mctrk){
+          if(mctrk.Start().X() < 0 || mctrk.Start().X() > 2*(larutil::Geometry::GetME()->DetHalfWidth()) ||
+             mctrk.Start().Y() < -(larutil::Geometry::GetME()->DetHalfHeight()) || mctrk.Start().Y() > larutil::Geometry::GetME()->DetHalfHeight() ||
+             mctrk.Start().Z() < 0 || mctrk.Start().Z() > larutil::Geometry::GetME()->DetLength()) {
+              return false;
+          }
+          else return true;
+      }
+      
+      double length(larlite::mctrack mctrk) {
+          double len = 0;
+          bool first = true;
+          TVector3 disp;
+          for(auto step : mctrk) {
+              if(first) {
+                  first = false;
+                  disp = {step.X(), step.Y(), step.Z()};
+              }
+              else {
+                  TVector3 pos(step.X(), step.Y(), step.Z());
+                  disp -= pos;
+                  len += disp.Mag();
+                  disp = pos;
+              }
+          }
+          return len;
+      }
+      
+      
+             
+             
       
   protected:
     

@@ -31,21 +31,15 @@ namespace larlite {
       other = new TTree("other","other");
       other->Branch("other_length",&other_length,"other_length/D");
       other->Branch("other_pdg",&other_pdg,"other_pdg/D");
+    
 
     return true;
   }
-  
+  // ========================================================================================================//
   //This is run once for every "ARTEvent"
   bool MCTrack_lengths::analyze(storage_manager* storage) {
-  
       
-    //
-    // Do your event-by-event analysis here. This function is called for 
-    // each event in the loop. You have "storage" pointers which contains
-    // event-wise data. To see what is available, check the "Manual.pdf":
-    // Or you can refer to Base/DataFormatConstants.hh for available data type
-    // enum values. Here is one example of getting PMT waveform collection.
-    //
+      std::cout << "\n ================================= " <<std::endl;
       
       //MCTruth data products
       auto mc = storage->get_data<event_mctruth>("generator");
@@ -58,11 +52,12 @@ namespace larlite {
       bool numuCCpi0 = false;   //flag for numuCCpi0 event
       bool topoCut   = false;   //flag for topology cut
       
+    
       
       //MCTrack / MCShower data products
       
-      int nMuTrk    = 0;        //number of muon tracks
-      int nTrk      = 0;        //number of tracks other than muons
+      int nMuTrk    = 0;        //number of primary muon tracks
+      int nTrk      = 0;        //number of tracks other than primary muons (may include non-primary muons)
       int prim_trk  = 0;        //number of primary tracks other than muons (what else comes out of int)
       int nShow     = 0;        //number of showers
       int prim_show = 0;        //number of showers from the pi0 decay
@@ -76,16 +71,12 @@ namespace larlite {
       // Check whether event is numuCCpi0
       if(nu.CCNC() == 0 && abs(nu.Nu().PdgCode()) == 14) {
         CCpi0_events++;
-        
         for(auto const& par: all_particles) {
-            
-          if(par.StatusCode() == 1) {
-              
+          if(par.StatusCode() == 1) {                                                                           //look at stable final states only
               if(par.PdgCode() == 111)      nPi0++;
               if(abs(par.PdgCode()) == 13)  nMu++;
-              
-          } //StatusCode() == 1 (stable final state particels)
-        } // iterate over all MCTruth particles
+          }
+        }
       } // select numu CC event
       
       
@@ -101,66 +92,49 @@ namespace larlite {
       if(numuCCpi0 == true) {
           
         // Vertex
-        TVector3 vtx;
+        TVector3 vtx = {-9999,-9999,-9999};
           
         for(auto mctrk : *mctrk_v){
-            
-          if(abs(mctrk.PdgCode()) == 13) {
-              
-            nMuTrk++;
-            double mu_len = 0; TVector3 start; TVector3 end;
-            start.SetXYZ(mctrk.Start().X(),mctrk.Start().Y(),mctrk.Start().Z());
-            end.SetXYZ(mctrk.End().X(),mctrk.End().Y(),mctrk.End().Z());
-            
-            //for(int i = 0; i < mctrk.size(); i++){
-            bool first = true;
-            TVector3 disp;
-            for(auto step : mctrk) {
-                if(first) first = false;
-                else {
-                    TVector3 pos(step.X(), step.Y(), step.Z());
-                    disp -= pos;
-                    mu_len += disp.Mag();
-                    disp = pos;
-                }
-            }
+          if(StartInTPC(mctrk) == true){                                                                        //ensure looking at tracks inside TPC volume
                 
-                //if(mctrk.at(i) != mctrk.at(0) ) { //|| fTPC.Contain(mctrk.at(i))){
-                   //   mu_len += (mctrk.at(i-1) - mctrk.at(i)).Mag();
-                 // }
-              //}
-              std::cout << " \n mu_len " << mu_len << std::endl;
-              std::cout << " start end " << (end - start).Mag() << std::endl;
-            muon_length = mu_len;
-            muons->Fill();
-              
-            // Define vertex as start point of "primary" muon, i.e. the one coming from numu interaction
-              if(mctrk.Process() == "primary") vtx = start;
-              else vtx = {-9999,-9999,-9999};
-          }
+            if(abs(mctrk.PdgCode()) == 13 && mctrk.Process() == "primary") {
+              nMuTrk++;                                                                                         // primary muon count
+              TVector3 start  = { mctrk.Start().X(), mctrk.Start().Y(), mctrk.Start().Z()};
+              TVector3 end    = { mctrk.End().X(),mctrk.End().Y(),mctrk.End().Z() };
+              muon_length = length(mctrk);                                                                      // using length function - mcsteps added up
+              muons->Fill();
+              vtx = start;                                                                                      // vtx: start of primary muon,from numu interaction
+              std::cout << " \n vertex at " << vtx.X() << ","<<vtx.Y()<<","<<vtx.Z()<<std::endl;
+            }
           
-          else if(mctrk.PdgCode() != 2112 && mctrk.PdgCode() != 111 && mctrk.PdgCode() < 10000) {            // cutting out neutral particles and fragments
-            nTrk++;                                                                                          // this counts tracks other than muons
-            double other_len = 0; TVector3 start; TVector3 end;
-            start.SetXYZ(mctrk.Start().X(),mctrk.Start().Y(),mctrk.Start().Z());
-            end.SetXYZ(mctrk.End().X(),mctrk.End().Y(),mctrk.End().Z());
-            
-            other_len = (end - start).Mag();
-            other_length = other_len;
-            d_vtx = (vtx - start).Mag(); // distance to vertex
-            other_pdg = mctrk.PdgCode(); //std::cout << other_pdg << std::endl;
-            other_process = mctrk.Process();
-            if(other_process == "primary") prim_trk++;
-            other->Fill();
+            else if(mctrk.PdgCode() != 2112 && mctrk.PdgCode() != 111 && mctrk.PdgCode() < 10000) {            // cutting out neutral particles and fragments
+              nTrk++;                                                                                          // this counts tracks other than muons
+              TVector3 start  = { mctrk.Start().X(), mctrk.Start().Y(), mctrk.Start().Z()};
+              TVector3 end    = { mctrk.End().X(),mctrk.End().Y(),mctrk.End().Z() };
+              other_length = length(mctrk);
+              d_vtx_trk = (vtx - start).Mag(); // distance to vertex
+              other_pdg = mctrk.PdgCode(); //std::cout << other_pdg << std::endl;
+              other_process = mctrk.Process();
+              if(other_process == "primary") prim_trk++;
+              other->Fill();
+                std::cout << "\n other track in event " << mctrk.Start().X()<<", "<< mctrk.Start().Y()<<", " << mctrk.Start().Z()<< std::endl;
+            }
           }
-        
         } //acting on each element of mctrk_v
           
         for(auto mcshow : *mcshow_v) {
-          nShow++;
-          if(mcshow.MotherPdgCode() == 111 && mcshow.MotherTrackID() == mcshow.AncestorTrackID()) prim_show++;
+          if(StartInTPC(mcshow) == true) {
+            nShow++;
+            if(mcshow.MotherPdgCode() == 111 && mcshow.MotherTrackID() == mcshow.AncestorTrackID()) {
+              prim_show++;
+              TVector3 start  = { mcshow.Start().X(), mcshow.Start().Y(), mcshow.Start().Z()};
+              d_vtx_show = (vtx - start).Mag();
+              std::cout << " \n shower from " <<mcshow.Start().X()<<","<<mcshow.Start().Y()<<","<<mcshow.Start().Z()<< std::endl;
+            }
           }
+        } // acting on each element of mcshow_v
           
+          // count events that pass the topoCut
           if(prim_trk == 1 && nMuTrk == 1 && prim_show == 2) {
               topoCut = true;                                                   // topoCut is 1 muon track, one other track and 2 showers from vertex
               nTopoCut++;
@@ -171,7 +145,6 @@ namespace larlite {
     //////////////////////////////////////////////////////////////////////////////////////////
      
     
-    //if(muon_length > 10000) std::cout << "muon_length "<< muon_length << std::endl;
       
     //Filling appropriate trees ==== NEEDS WORK
     
@@ -185,7 +158,8 @@ namespace larlite {
       
     return true;
   }
-
+    
+  // =============================================================================================================//
   //This is run once at the end of the job
   bool MCTrack_lengths::finalize() {
 
