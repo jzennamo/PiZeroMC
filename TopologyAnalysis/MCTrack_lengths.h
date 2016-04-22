@@ -23,6 +23,7 @@
 //#include "GeoAlgo/GeoAABox.h"
 #include "LArUtil/Geometry.h"
 #include "TTree.h"
+#include <TH1.h>
 
 namespace larlite {
   /**
@@ -60,12 +61,10 @@ namespace larlite {
       
       TTree* tree;
       int thisInt           = 0;
-      int no_muons          = 0;
-      int no_tracks         = 0;
-      int no_prim_tracks    = 0;
+      double lengthRatio    = 0;
       
       TTree* muons;
-      double muon_length    = 0;
+      double muon_length    = -1;
       
       TTree* other;
       double other_length   = 0;

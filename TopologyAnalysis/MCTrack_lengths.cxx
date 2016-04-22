@@ -21,16 +21,16 @@ namespace larlite {
       if(tree) delete tree;
       tree = new TTree("tree","tree");
       tree->Branch("thisInt",&thisInt,"thisInt/I");
-      tree->Branch("no_muons",&no_muons,"no_muons/I");
-      tree->Branch("no_tracks",&no_tracks,"no_tracks/I");                   // number of tracks per event other than muons
-      tree->Branch("no_prim_tracks",&no_prim_tracks,"no_prim_tracks/I");
+      tree->Branch("lengthRatio", &lengthRatio, "lengthRatio/D");   // Ratio of other track length to muon track length
       
       muons = new TTree("muons","muons");
-      muons->Branch("muon_length",&muon_length,"muon_length/D");
+      muons->Branch("muon_length",&muon_length,"muon_length/D");    // length of muon in event that passes the topoCut
       
       other = new TTree("other","other");
-      other->Branch("other_length",&other_length,"other_length/D");
-      other->Branch("other_pdg",&other_pdg,"other_pdg/D");
+      other->Branch("other_length",&other_length,"other_length/D"); // length of other tracks in event that passes topoCut
+      
+      TH1D *muonLength  = new TH1D("muonLength","Length of muon in event that passes cuts", 100, 0, 0);
+      TH1D *otherLength = new TH1D("otherLenght", "Lengths of other tracks in event that passes cuts", 100, 0, 0);
     
 
     return true;
@@ -39,7 +39,6 @@ namespace larlite {
   //This is run once for every "ARTEvent"
   bool MCTrack_lengths::analyze(storage_manager* storage) {
       
-      std::cout << "\n ================================= " <<std::endl;
       
       //MCTruth data products
       auto mc = storage->get_data<event_mctruth>("generator");
@@ -91,20 +90,23 @@ namespace larlite {
       
       if(numuCCpi0 == true) {
           
+        std::cout << "\n ======================================================== " <<std::endl;
+          
         // Vertex
         TVector3 vtx = {-9999,-9999,-9999};
           
         for(auto mctrk : *mctrk_v){
           if(StartInTPC(mctrk) == true){                                                                        //ensure looking at tracks inside TPC volume
-                
+              
+              
             if(abs(mctrk.PdgCode()) == 13 && mctrk.Process() == "primary") {
               nMuTrk++;                                                                                         // primary muon count
               TVector3 start  = { mctrk.Start().X(), mctrk.Start().Y(), mctrk.Start().Z()};
               TVector3 end    = { mctrk.End().X(),mctrk.End().Y(),mctrk.End().Z() };
               muon_length = length(mctrk);                                                                      // using length function - mcsteps added up
-              muons->Fill();
               vtx = start;                                                                                      // vtx: start of primary muon,from numu interaction
               std::cout << " \n vertex at " << vtx.X() << ","<<vtx.Y()<<","<<vtx.Z()<<std::endl;
+              std::cout << " muon length " << muon_length << std::endl;
             }
           
             else if(mctrk.PdgCode() != 2112 && mctrk.PdgCode() != 111 && mctrk.PdgCode() < 10000) {            // cutting out neutral particles and fragments
@@ -116,8 +118,8 @@ namespace larlite {
               other_pdg = mctrk.PdgCode(); //std::cout << other_pdg << std::endl;
               other_process = mctrk.Process();
               if(other_process == "primary") prim_trk++;
-              other->Fill();
                 std::cout << "\n other track in event " << mctrk.Start().X()<<", "<< mctrk.Start().Y()<<", " << mctrk.Start().Z()<< std::endl;
+                std::cout << " other track length " << other_length << std::endl;
             }
           }
         } //acting on each element of mctrk_v
@@ -144,18 +146,15 @@ namespace larlite {
       
     //////////////////////////////////////////////////////////////////////////////////////////
      
-    
+      lengthRatio = other_length/muon_length;
       
     //Filling appropriate trees ==== NEEDS WORK
-    
-    no_muons = nMuTrk;
-    if(numuCCpi0 == false) no_muons = -3; // -3 if no interaction present
-    no_tracks = nTrk;
-    if(numuCCpi0 == false) no_tracks = -3; // -3 if no interaction present
-    no_prim_tracks = prim_trk;
-    if(numuCCpi0 == false) no_prim_tracks = -3; // use -3 as flag for no interaction present
-    if(numuCCpi0 == true) tree->Fill();
-      
+      if(topoCut) {
+          muons->Fill();
+          other->Fill();
+          tree->Fill();
+      }
+
     return true;
   }
     
@@ -164,7 +163,7 @@ namespace larlite {
   bool MCTrack_lengths::finalize() {
 
       std::cout << "\n number of CCPi0 events \t" << CCpi0_events << std::endl;
-      std::cout << " number of all           \t" << all << std::endl;
+      std::cout << " number of numuCCPi0 events \t" << all << std::endl;
       std::cout << " number passing topoCut  \t" << nTopoCut << std::endl;
       
       
