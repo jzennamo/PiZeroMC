@@ -24,7 +24,9 @@ my_proc.set_ana_output_file("Output_Histograms.root");
 
 # Attach an analysis unit ... here we use a base class which does nothing.
 # Replace with your analysis unit if you wish.
-my_proc.add_process(fmwk.MCTruth_classifications())
+#my_proc.add_process(fmwk.MCTruth_classifications())
+#my_proc.add_process(fmwk.MCTrack_lengths())
+my_proc.add_process(fmwk.MCRecoCompare())
 
 print
 print  "Finished configuring ana_processor. Start event loop!"
