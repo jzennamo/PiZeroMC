@@ -20,6 +20,8 @@
 #include "DataFormat/mctruth.h"
 #include "DataFormat/mctrack.h"
 #include "DataFormat/mcshower.h"
+#include "DataFormat/pfpart.h"
+#include "DataFormat/track.h"
 //#include "GeoAlgo/GeoAABox.h"
 #include "LArUtil/Geometry.h"
 #include "TTree.h"
@@ -73,13 +75,17 @@ namespace larlite {
       double d_vtx_trk      = 0; //track distances from vertex
       double d_vtx_show      = 0; //shower distances from vertex
       
-      int CCpi0_events      = 0;
+      int all_events        = 0;
+      int CC_events      = 0;
       int all               = 0;
       int nTopoCut          = 0;
       
       int p_CCpi0_events    = 0;
       int p_all             = 0;
       int p_nTopoCut        = 0;
+      
+      int nSuccess          = 0;
+      int evt_id            = 0; // only for debug
       
       
   private:
