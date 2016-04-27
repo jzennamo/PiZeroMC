@@ -8,7 +8,7 @@ namespace larlite {
   bool MCRecoCompare::initialize() {
   
   // General
-      all_events      = 0;
+      all_events      = 0;                  // count all processed events
       
       
   // FOR MC
@@ -17,7 +17,8 @@ namespace larlite {
       evt_id = 0; ///only for debug
       
       CC_events         = 0;
-      all               = 0; //these are all CCpi0 events with one muon, one pi0 (numuCCPi0)
+      numuCCpi0_events  = 0; //these are all CCpi0 events with one muon, one pi0 (numuCCPi0)
+      
       nTopoCut          = 0; //number of events passing topoCut
       
       if(tree) delete tree;
@@ -37,13 +38,16 @@ namespace larlite {
 
   // FOR RECO
       
-      p_CCpi0_events     = 0;
-      p_all              = 0;
-      p_nTopoCut         = 0;
+      p_nTopoCut         = 0;       // number of reco events passing p_topoCut
       
-      nSuccess           = 0; // number of MC and reco matches
-      nFake              = 0;
-      nCCpi0Pand     = 0; // number of events with p_topoCut true and numuCCpi0 true
+  // Evaluation
+      
+      nSuccess           = 0;       // number of MC and reco matches
+      nFake              = 0;       // number of reco PiZero events where there was no MC PiZero event
+      fakeNotCC          = 0;       // number of fakes (true event not CC)
+      fakeNotTopo        = 0;       // number of fakes (MC doesnt have the required topology (number of showers, tracks))
+      nMoreThanOne       = 0;
+      
 
     return true;
   }
@@ -54,54 +58,65 @@ namespace larlite {
   bool MCRecoCompare::analyze(storage_manager* storage) {
       
 
-      //std::cout << "\n ======================================================== " <<std::endl;
+      //std::cout << " ======================================================== " <<std::endl;
       //std::cout << " EVENT NUMBER " << storage->event_id() << std::endl;
       
       all_events++;
       
       // Reco data products ------------------------------------------------------------------------------
       
-      //auto p_tracks_v = storage->get_data<event_track>("pandoraNuKHit");        // get reco tracks
-      //auto p_showers_v = storage->get_data<event_shower>("showerrecopandora");  // get reco showers
+      auto *p_tracks_v = storage->get_data<event_track>("pandoraNu");                // get reco tracks
+      //auto p_showers_v = storage->get_data<event_shower>("showerrecopandora");    // get reco showers
       
       
       // Track associations - - - - - - - - - - - - - - - - - -
       
       auto *pfp_v = storage->get_data<event_pfpart>("pandoraNu");               // get PFParticles
       
-      event_track *pfp_tracks = nullptr;
-      auto ass_tracks = storage->find_one_ass(pfp_v->id(), pfp_tracks, pfp_v->name() ); // this *should* be the tracks associated with the pfparticle...
+      //event_track *pfp_tracks = nullptr;
+      //auto ass_tracks = storage->find_one_ass(pfp_v->id(), pfp_tracks, pfp_v->name() ); // this *should* be the tracks associated with the pfparticle...
       
       //std::cout << "ass_tracks size " << ass_tracks.size() <<std::endl;
       
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       
-      
-      bool p_topoCut = false;    // flag for 2 track, 2 shower events (initial seeding out)
-      
+      bool moreThanOneNu = false;   // flag event if there are more than one reco neutrinos in the event
+      bool foundOne      = false;   // internal flag
+      bool p_topoCut     = false;   // flag for 2 track, 2 shower events (initial seeding out)
       
       
       // go through PFParticle list, check for neutrino (12 or 14)
+      
       for(auto pfp : *pfp_v) {
-          if(pfp.PdgCode() == 12 || pfp.PdgCode() == 14) {                                      //is PFParticle a neutrino?
-              //std::cout << "\n neutrino " << pfp.PdgCode();
-              int nu_index = pfp.Self(); //std::cout << nu_index << std::endl;                    // if yes, this is its identifier
-              int n_t = 0;                                                                          // number of tracks
-              int n_s = 0;                                                                          // number of showers
+          if((pfp.PdgCode() == 12 || pfp.PdgCode() == 14) && foundOne == false) {                    //is PFParticle a neutrino? Only go on if not already have a success
+              int nu_index = pfp.Self(); //std::cout << nu_index << std::endl;                       // if yes, this is its identifier
+              int n_t = 0;                                                                           // number of tracks
+              int n_s = 0;                                                                           // number of showers
               for(auto pfpp : *pfp_v) {
                   if(pfpp.PdgCode() == 13 && pfpp.Parent()== nu_index) n_t++;                          // number of tracks from that neutrino
                   if(pfpp.PdgCode() == 11 && pfpp.Parent()== nu_index) n_s++;                          // number of showers from that neutrino
               }
-            // std::cout << "\n" << n_s <<" SHOWERS AND " << n_t<< " TRACKS \n\n\n" << std::endl;
               if(n_s == 2 && n_t >= 2) {
-                  //std::cout << "\n 2 TWO SHOWERS AND 2 TRACKS!! \n" << std::endl;
-                  p_nTopoCut++;
-                  p_topoCut = true;
+                  p_topoCut = true;                                                                     // p_topoCut is flag for reco event -> query to count at the end.
+                  foundOne = true;
               }
-              //else std::cout << "\t Not right number of showers and tracks" <<std::endl;
           }
-          //else std::cout << "No neutrino found " <<std::endl;
+          else if((pfp.PdgCode() == 12 || pfp.PdgCode() == 14) && foundOne == true) {               // if already have a selected reco event
+              int nu_index = pfp.Self(); //std::cout << nu_index << std::endl;
+              int n_t = 0;
+              int n_s = 0;
+              for(auto pfpp : *pfp_v) {
+                  if(pfpp.PdgCode() == 13 && pfpp.Parent()== nu_index) n_t++;
+                  if(pfpp.PdgCode() == 11 && pfpp.Parent()== nu_index) n_s++;
+              }
+              if(n_s == 2 && n_t >= 2) moreThanOneNu = true;                                        // more than one reco event.
+          }
       }
+
+      if(p_topoCut && moreThanOneNu == false) p_nTopoCut++;
+      
+      
+      
       
       
       //MCTruth data products -----------------------------------------------------------------------------
@@ -109,15 +124,16 @@ namespace larlite {
       auto& all_particles = mc->at(0).GetParticles();
       auto& nu = mc->at(0).GetNeutrino();
       
-      int nMu       = 0;        //number of MCTruth muons
-      int nPi0      = 0;        // number of MCTruth Pi0
+      int nMu       = 0;                //number of MCTruth muons
+      int nPi0      = 0;                // number of MCTruth Pi0
       
-      bool numuCCpi0 = false;   //flag for numuCCpi0 event
-      bool topoCut   = false;   //flag for topology cut
+      bool numuCCpi0        = false;    //flag for numuCCpi0 event
+      bool topoCut          = false;    //flag for topology cut
+      bool foundOneMC       = false;    //internal flag
+      bool moreThanOneNuMC  = false;    //flag event if there are more than one MC neutrino PiZero interactions
       
       
       //MCTrack / MCShower data products ------------------------------------------------------------------
-      
       
       //MCTracks and MCShowers
       auto mctrk_v = storage->get_data<event_mctrack>("mcreco");        // this is a vector of tracks
@@ -125,106 +141,142 @@ namespace larlite {
       
       
       // Check whether event is CC numu
-      if(nu.CCNC() == 0 && abs(nu.Nu().PdgCode()) == 14) {
+      if(nu.CCNC() == 0 && (abs(nu.Nu().PdgCode()) == 14) ) {
           CC_events++;
           for(auto const& par: all_particles) {
-              if(par.StatusCode() == 1) {                                                                           //look at stable final states only
+              if(par.StatusCode() == 1) {                                //look at stable final states only
                   if(par.PdgCode() == 111)      nPi0++;
                   if(abs(par.PdgCode()) == 13)  nMu++;
               }
           }
-      } // select numu CC event
-      
-      
-      //these are the events we want to initially select and check their tracks and showers, numuCCPi0
-      if(nPi0 >= 1 && nMu >= 1) {
-          numuCCpi0 = true;
-          all++;
-      }
-      
-      //////////////////////////////////////////////////////////////////////////////////
-      // This bit only executed when looking at a numuCCpi0 event                     //
-      
-     // std::cout << "\n event " << std::endl;
-      
-      if(numuCCpi0) {
           
+          if(nPi0 >= 1 && nMu >= 1) {
+              numuCCpi0 = true;
+              numuCCpi0_events++;
+          }
+      } // select numu CC event with one Pion only
+
+      if(nPi0 > 1 && numuCCpi0 == true) {
+          //std::cout << "Multiple PiZeros in MC: " << nPi0 << std::endl;
+      }
+      //else return false;
+      
+      
+      
+    
+      
+      // now only looking at numuCCpi0 flagged events
+      
+      if(numuCCpi0) {               // now already know this event has at least Pi0, one muon
           
           // Vertex
           TVector3 vtx = {-9999,-9999,-9999};
           
-          for(auto mcp : all_particles) {                                                                                      //iterate through MCParticles
-              int n_s = 0;
-              int n_m = 0;
-              int n_t = 0;
-              double muon_len = 0;
-              if(mcp.PdgCode() == 111 && mcp.StatusCode() == 1) {                                                                                // find pizero
-                  //std::cout << "FOUND PIZER0, mother:  " << mcp.Mother() << std::endl;
-                  //int pizero_mother = mcp.Mother();
-                  for(auto mcshw : *mcshow_v) {
-                      //if(mcshw.PdgCode() == 22) std::cout << "\tPhoton shower " << mcshw.MotherTrackID() << ", " << mcshw.AncestorTrackID() << " starts " << mcshw.Start().X() << std::endl;
-                      if(mcshw.PdgCode() == 22) {
-                          n_s++;           //count photon showers from pizero
-                          //std::cout << "\tPhoton shower " << mcshw.MotherTrackID() << ", " << mcshw.AncestorTrackID() << " starts " << mcshw.Start().X() << std::endl;
+          for(auto mcp : all_particles) {                                                                                                       //iterate through MCParticles
+              
+                      if(mcp.PdgCode() == 111 && mcp.StatusCode() == 1 && foundOneMC == false) {                                                // find pizero
+                          
+                          int n_s = 0;
+                          int n_s_photon = 0;
+                          int n_m = 0;
+                          int n_t = 0;
+                          double muon_len = 0;
+                          
+                          //count tracks
+                          for(auto mctrk : *mctrk_v) {
+                              if(abs(mctrk.PdgCode()) == 13 && mctrk.Process() == "primary") {
+                                  if(length(mctrk) > 0) {
+                                      vtx.SetXYZ(mctrk.Start().X(), mctrk.Start().Y(), mctrk.Start().Z());                              // set vertex to be the start point of the primary muon
+                                      n_m++;                                                                                            // primary muons
+                                      muon_len = length(mctrk);
+                                  }
+                              }
+                              else if(mctrk.PdgCode() != 2112 && mctrk.PdgCode() != 130 && mctrk.PdgCode() != 310 && mctrk.PdgCode() != 111
+                                      && mctrk.PdgCode() != 311 && mctrk.PdgCode() < 10000 && mctrk.Process() == "primary" && length(mctrk) != 0 && StartInTPC(mctrk)) {
+                                  n_t++;                                                                                                                  // other tracks from interaction
+                              }
+                          }
+                          
+                          //count showers
+                          for(auto mcshw : *mcshow_v) {
+                              if(mcshw.PdgCode() == 22 && StartInTPC(mcshw) && mcshw.MotherPdgCode() == 111) {                  //count photon showers from pizero
+                                  n_s_photon++;
+                              }
+                              else if((mcshw.PdgCode() == 22 || abs(mcshw.PdgCode()) == 11) && StartInTPC(mcshw)) {             // count other showers
+                                  TVector3 svtx;
+                                  svtx.SetXYZ(mcshw.Start().X(), mcshw.Start().Y(), mcshw.Start().Z());
+                                  if((svtx - vtx).Mag() < 1) {
+                                      n_s++;
+                                  }
+                              }
+                          }
+                          
+                          
+                          // assess topology
+                          //std::cout << "\t n_s " << n_s << "\t n_m " << n_m << "\t n_t " << n_t << std::endl;
+                          
+                          if(n_s_photon == 2 && n_m == 1 && n_t >=1 && n_s == 0) {                                                                             // selection Criteria
+                              topoCut = true;
+                              foundOneMC = true;
+                          }
                       }
-                  }
-                  for(auto mctrk : *mctrk_v) {
-                      if(abs(mctrk.PdgCode()) == 13 && mctrk.Process() == "primary") {
-                          if(length(mctrk) > 0) { n_m++;         // primary muons
-                              muon_len = length(mctrk);}
-                          //std::cout << "\t Muon " << std::endl;
-                      }
-                      else if(mctrk.PdgCode() != 2112 && mctrk.PdgCode() != 130 && mctrk.PdgCode() != 310 && mctrk.PdgCode() != 111
-                              && mctrk.PdgCode() != 311 && mctrk.PdgCode() < 10000 && mctrk.Process() == "primary") {
-                                n_t++;           // other tracks from interaction
-                                //std::cout << "\t Other " << mctrk.PdgCode() << std::endl;
-                      }
-                  }
-                  //std::cout << "\t n_s " << n_s << "\t n_m " << n_m << "\t n_t " << n_t << std::endl;
-                  if(n_s == 2 && n_m >= 1 && n_t >=1) {                                                                             // selection Criteria
-                      topoCut = true;
-                      nTopoCut++;
-                      for(auto mck : all_particles) {
-                          //f(mck.TrackId() == pizero_mother) std::cout << " pizero mother " << mck.PdgCode() << "\t muon length " << muon_len<< std::endl;
-                      }
-                  }
-                  else if(p_topoCut) std::cout << "p_topoCUt true but not right number of MCTracks \t muons: "<< n_m << "\t tracks: " << n_t << "\t showers: " << n_s << std::endl;
-              }
-            
+              
+              // if there is already a MC pion interaction that passes:
+                else if(mcp.PdgCode() == 111 && mcp.StatusCode() == 1 && foundOneMC == true) {
+                    
+                    int n_s = 0;
+                    int n_s_photon = 0;
+                    int n_m = 0;
+                    int n_t = 0;
+                    double muon_len = 0;
+                    
+                    //count tracks
+                    for(auto mctrk : *mctrk_v) {
+                        if(abs(mctrk.PdgCode()) == 13 && mctrk.Process() == "primary") {
+                            if(length(mctrk) > 0) {
+                                vtx.SetXYZ(mctrk.Start().X(), mctrk.Start().Y(), mctrk.Start().Z());                              // set vertex to be the start point of the primary muon
+                                n_m++;                                                                                            // primary muons
+                                muon_len = length(mctrk);
+                            }
+                        }
+                        else if(mctrk.PdgCode() != 2112 && mctrk.PdgCode() != 130 && mctrk.PdgCode() != 310 && mctrk.PdgCode() != 111       // other tracks from interaction
+                                && mctrk.PdgCode() != 311 && mctrk.PdgCode() < 10000 && mctrk.Process() == "primary" && length(mctrk) != 0 && StartInTPC(mctrk)) n_t++;
+                        
+                    }
+                    
+                    //count showers
+                    for(auto mcshw : *mcshow_v) {
+                        if(mcshw.PdgCode() == 22 && StartInTPC(mcshw) && mcshw.MotherPdgCode() == 111) n_s_photon++;                 //count photon showers from pizero
+                            
+                        else if((mcshw.PdgCode() == 22 || abs(mcshw.PdgCode()) == 11) && StartInTPC(mcshw)) {                        // count other showers
+                            TVector3 svtx;
+                            svtx.SetXYZ(mcshw.Start().X(), mcshw.Start().Y(), mcshw.Start().Z());
+                            if((svtx - vtx).Mag() < 1) n_s++;
+                        }
+                    }
+                    if(n_s_photon == 2 && n_m == 1 && n_t >=1 && n_s == 0) {
+                        moreThanOneNuMC = true;
+                    }
+                    
+                    
+                }
+              
           }
-          
-          
-      } // selecting numuCCpi0 events
-      
+        
+    } // selecting numuCCpi0 events
 
+      if(p_topoCut && numuCCpi0 == false && topoCut == false && moreThanOneNu == false && moreThanOneNuMC == false) fakeNotCC++;
+      if(p_topoCut && numuCCpi0 && topoCut == false && moreThanOneNu == false && moreThanOneNuMC == false) fakeNotTopo++;
     
-      
-      //////////////////////////////////////////////////////////////////////////////////////////
-    /*
-      lengthRatio = other_length/muon_length;
-      
-      //Filling appropriate trees ==== NEEDS WORK
-      if(topoCut) {
-          muons->Fill();
-          other->Fill();
-          tree->Fill();
-      }
+      if(topoCut == true && moreThanOneNuMC == false) nTopoCut++;
 
-      */
-    
-     if(topoCut && p_topoCut) {
-          nSuccess++;
-          //std::cout << storage->event_id() << std::endl;
-      }
       
-      if(p_topoCut && numuCCpi0) nCCpi0Pand++;
+      if(topoCut == true && p_topoCut == true && moreThanOneNuMC == false && moreThanOneNu == false) nSuccess++;
+      if(topoCut == true && p_topoCut == true && moreThanOneNuMC == true && moreThanOneNu == true) nSuccess++;
+      if(p_topoCut && topoCut == false && moreThanOneNu == false && moreThanOneNuMC == false) nFake++;
       
-      if(p_topoCut && topoCut == false) nFake++;
+      if(moreThanOneNuMC) nMoreThanOne++;
       
-      if(p_topoCut && topoCut == false) {
-          //std::cout << "neutrino " << nu.Nu().PdgCode() <<std::endl;
-          for(auto mcp : all_particles) {}//std::cout << " mc particles " << mcp.PdgCode() << std::endl;
-      }
       
     return true;
   }
@@ -236,13 +288,16 @@ namespace larlite {
       
       std::cout << "\n number of all events processed: \t\t" << all_events << std::endl;
       std::cout << " number of CC events \t\t\t\t" << CC_events << std::endl;
-      std::cout << " number of numuCCPi0 events \t\t\t" << all << std::endl;
+      std::cout << " number of numuCCPi0 events \t\t\t" << numuCCpi0_events << std::endl;
       std::cout << " number passing MC topoCut  \t\t\t" << nTopoCut << std::endl;
       std::cout << " number passing p_topoCut \t\t\t" << p_nTopoCut << std::endl;
       
       std::cout << " MC topoCut true and p_topoCut true \t\t" << nSuccess << std::endl;
-      std::cout << " MC topoCut false and p_topoCut true \t\t" << nFake << std::endl;
-      std::cout << "\n  numuCCPi0 event and p_topoCut true \t\t" << nCCpi0Pand << std::endl;
+      std::cout << " MC topoCut false and p_topoCut true (Fake) \t" << nFake << std::endl;
+      std::cout << " \t of which not numuCCpi0 \t\t" << fakeNotCC << std::endl;
+      std::cout << " \t of which not correct topology in MC \t" << fakeNotTopo << std::endl;
+      std::cout << "\n \t more than one " << nMoreThanOne   << std::endl;
+      
     
       
       // This function is called at the end of event loop.

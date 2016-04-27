@@ -79,7 +79,7 @@ namespace larlite {
       
       int all_events        = 0;
       int CC_events      = 0;
-      int all               = 0;
+      int numuCCpi0_events               = 0;
       int nTopoCut          = 0;
       
       int p_CCpi0_events    = 0;
@@ -88,6 +88,10 @@ namespace larlite {
       
       int nSuccess          = 0;
       int nFake             = 0;
+      int fakeNotCC         = 0; // number of fakes that are not CC in MC
+      int fakeNotTopo       = 0; // number of fakes that do not have the required topology (number of showers, tracks)
+      int nMoreThanOne      = 0;
+
       int evt_id            = 0; // only for debug
       int nCCpi0Pand        = 0;
       
