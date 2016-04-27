@@ -75,6 +75,8 @@ namespace larlite {
       double d_vtx_trk      = 0; //track distances from vertex
       double d_vtx_show      = 0; //shower distances from vertex
       
+      TTree* fake;
+      
       int all_events        = 0;
       int CC_events      = 0;
       int all               = 0;
@@ -85,7 +87,9 @@ namespace larlite {
       int p_nTopoCut        = 0;
       
       int nSuccess          = 0;
+      int nFake             = 0;
       int evt_id            = 0; // only for debug
+      int nCCpi0Pand        = 0;
       
       
   private:
