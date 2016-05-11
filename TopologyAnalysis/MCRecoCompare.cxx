@@ -263,22 +263,24 @@ namespace larlite {
                           
             //count showers
             for(auto mcshw : *mcshow_v) {
-                if(mcshw.PdgCode() == 22 && StartInTPC(mcshw) && mcshw.MotherPdgCode() == 111) {                  //count photon showers from pizero
+                if(mcshw.PdgCode() == 22 && StartInTPC(mcshw)) { // && mcshw.MotherPdgCode() == 111) {                  //count photon showers from pizero
                     double shower_len = 0;
                     TVector3 svtx;
                     TVector3 send;
                     svtx.SetXYZ(mcshw.Start().X(), mcshw.Start().Y(), mcshw.Start().Z());
                     send.SetXYZ(mcshw.End().X(), mcshw.End().Y(), mcshw.End().Z());
                     shower_len = (svtx - send).Mag();
-                    std::cout << "**MCShower Photon from Pi0 distance to vtx : " << (svtx - vtx).Mag() << "\t shower length " << shower_len << "\t Mother Process: " << mcshw.MotherProcess() << std::endl;
-                    if(shower_len > 0) n_s_photon++;                   //can impose shower length cut here
+                    if(shower_len > 0 && (svtx - vtx).Mag() < 0.01) {
+                        n_s_photon++;                   //can impose shower length cut here
+                        std::cout << "**MCShower Photon from Pi0 distance to vtx : " << (svtx - vtx).Mag() << "\t shower length " << shower_len << "\t Mother Pdg: " << mcshw.MotherPdgCode() << std::endl;
+                    }
                 }
                 else if((mcshw.PdgCode() == 22 || abs(mcshw.PdgCode()) == 11) && StartInTPC(mcshw)) {             // count other showers
                     TVector3 svtx;
                     svtx.SetXYZ(mcshw.Start().X(), mcshw.Start().Y(), mcshw.Start().Z());
-                    if((svtx - vtx).Mag() < 100){
+                    if((svtx - vtx).Mag() < 1){
                         n_s++;                                                             // count other showers that are close to vertex
-                        std::cout << "MCShower " << mcshw.PdgCode() << " distance to vtx : " << (svtx - vtx).Mag() << "\t Mother Process " << mcshw.MotherProcess() << std::endl;
+                        std::cout << "MCShower " << mcshw.PdgCode() << " distance to vtx : " << (svtx - vtx).Mag() << "\t Mother Process " << mcshw.MotherProcess() << "\t Mother Pdg " << mcshw.MotherPdgCode() << std::endl;
                     }
                 }
             }
@@ -287,7 +289,7 @@ namespace larlite {
                           // assess topology
                           //std::cout << "\t n_s " << n_s << "\t n_m " << n_m << "\t n_t " << n_t << std::endl;
                           
-                if(n_s_photon == 2 && n_m == 1 && n_t >=1 && n_s == 0 && n_t_other == 0) {                                                                    // selection Criteria
+                if(n_s_photon == 2 && n_m == 1 && n_t >=1 && n_s == 0 && n_t_other == 0) {                                                               // selection Criteria
                     topoCut = true;
                             
                           }
