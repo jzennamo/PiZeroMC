@@ -231,7 +231,7 @@ namespace larlite {
                 if(abs(mctrk.PdgCode()) == 13 && mctrk.Process() == "primary") {
                     TVector3 muontrackstart;
                     muontrackstart.SetXYZ(mctrk.Start().X(), mctrk.Start().Y(), mctrk.Start().Z());
-                    if(length(mctrk) > 0 && (muontrackstart - vtx).Mag() < 0.1) {                       // can impose length cut here
+                    if(length(mctrk) > 0 && (muontrackstart - vtx).Mag() < 0.01) {                       // can impose length cut here
                         n_m++;                                                                                            // primary muons
                         muon_len = length(mctrk);
                         std::cout << "*MCTrack muon distance to vtx " << (muontrackstart - vtx).Mag() << "\t len: " << muon_len << std::endl;
@@ -241,7 +241,7 @@ namespace larlite {
                                       && mctrk.PdgCode() != 311 && mctrk.PdgCode() < 10000 && mctrk.Process() == "primary"  && StartInTPC(mctrk)) {
                     TVector3 trackstart;
                     trackstart.SetXYZ(mctrk.Start().X(), mctrk.Start().Y(), mctrk.Start().Z());
-                    if((trackstart - vtx).Mag() < 0.1 && length(mctrk) > 0) {                                                // count other tracks from vertex
+                    if((trackstart - vtx).Mag() < 0.01 && length(mctrk) > 0) {                                                // count other tracks from vertex
                         n_t++;
                         std::cout << "*MCTrack " << mctrk.PdgCode() << " distance to vtx " << (trackstart - vtx).Mag() << "\t len: " << length(mctrk) << std::endl;
                     }
@@ -251,7 +251,7 @@ namespace larlite {
                         && mctrk.PdgCode() != 311 && mctrk.PdgCode() < 10000 && mctrk.Process() == "primary"  && StartInTPC(mctrk)) {
                     TVector3 trackstart;
                     trackstart.SetXYZ(mctrk.Start().X(), mctrk.Start().Y(), mctrk.Start().Z());
-                    if((trackstart - vtx).Mag() > 0.01 && (trackstart - vtx).Mag() < 5 && length(mctrk) > 0) {                                                // count other tracks NOT from vertex but close
+                    if((trackstart - vtx).Mag() > 0.01 && (trackstart - vtx).Mag() < 1 && length(mctrk) > 0) {                                                // count other tracks NOT from vertex but close
                         n_t_other++;
                         std::cout << "MCTrack " << mctrk.PdgCode() << " distance to vtx " << (trackstart - vtx).Mag() << "\t len: " << length(mctrk) << std::endl;
                     }
