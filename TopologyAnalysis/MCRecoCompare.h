@@ -116,6 +116,15 @@ namespace larlite {
           else return true;
       }
       
+      bool StartInTPC(larlite::mcpart mctrk){
+          if(mctrk.Trajectory().at(0).Position().X() < 0 || mctrk.Trajectory().at(0).Position().X() > 2*(larutil::Geometry::GetME()->DetHalfWidth()) ||
+             mctrk.Trajectory().at(0).Position().Y() < -(larutil::Geometry::GetME()->DetHalfHeight()) || mctrk.Trajectory().at(0).Position().Y() > larutil::Geometry::GetME()->DetHalfHeight() ||
+             mctrk.Trajectory().at(0).Position().Z() < 0 || mctrk.Trajectory().at(0).Position().Z() > larutil::Geometry::GetME()->DetLength()) {
+              return false;
+          }
+          else return true;
+      }
+      
       double length(larlite::mctrack mctrk) {
           double len = 0;
           bool first = true;
