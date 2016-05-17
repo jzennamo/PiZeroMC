@@ -22,6 +22,7 @@
 #include "DataFormat/mcshower.h"
 #include "DataFormat/pfpart.h"
 #include "DataFormat/track.h"
+#include "DataFormat/vertex.h"
 //#include "GeoAlgo/GeoAABox.h"
 #include "LArUtil/Geometry.h"
 #include "TTree.h"
@@ -64,14 +65,15 @@ namespace larlite {
       TTree* tree;
       int thisInt           = 0;
       double lengthRatio    = 0;
+      double vertexdiff     = 0;
+
       
-      TTree* muons;
+      TTree* mctree;
+      int mcevent           = -1;
       double muon_length    = -1;
       
-      TTree* other;
-      double other_length   = 0;
-      double other_pdg      = 0;
-      std::string other_process;
+      TTree* recotree;
+      int pfpevent          = -1;
       double d_vtx_trk      = 0; //track distances from vertex
       double d_vtx_show      = 0; //shower distances from vertex
       
@@ -95,6 +97,11 @@ namespace larlite {
       int evt_id            = 0; // only for debug
       int nCCpi0Pand        = 0;
       
+      int fakeNotTopoEvent = 0;
+      
+      TH1F *mc_track_lengths    = new TH1F("mc_track_lengths", "Lengths of tracks from vertex in selected MC events", 100, -10, 1000);
+      TH1F *mc_muon_lengths     = new TH1F("mc_muon_lengths", "Lengths of muon tracks from interaction", 100, -10, 1000);
+      TH1F *mc_ntracks          = new TH1F("mc_ntracks", "Number of tracks from interaction vertex", 10, 0, 10);
       
   private:
       
